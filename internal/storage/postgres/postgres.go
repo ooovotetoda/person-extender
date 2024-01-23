@@ -44,7 +44,7 @@ func New() (*Storage, error) {
 }
 
 func (s *Storage) SavePerson(person *entity.Person) (int64, error) {
-	const op = "storage.postgresql.RegisterUser"
+	const op = "storage.postgres.SavePerson"
 
 	stmt, err := s.db.Prepare("INSERT INTO persons (name, surname, patronymic, age, gender, country) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id")
 	if err != nil {
@@ -60,12 +60,27 @@ func (s *Storage) SavePerson(person *entity.Person) (int64, error) {
 }
 
 func (s *Storage) DeletePerson(ID int64) error {
-	const op = "storage.postgresql.RegisterUser"
+	const op = "storage.postgres.DeletePerson"
 
 	_, err := s.db.Exec(`DELETE FROM persons WHERE id = $1`, ID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	return nil
+}
+
+func (s *Storage) UpdatePerson(person *entity.Person) error {
+	const op = "storage.postgres.UpdatePerson"
+
+	stmt, err := s.db.Prepare("UPDATE persons SET name = $2, surname = $3, patronymic = $4, age = $5, gender = $6, country = $7 WHERE id = $1")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = stmt.Exec(person.ID, person.Name, person.Surname, person.Patronymic, person.Age, person.Gender, person.Country)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
 	return nil
 }
