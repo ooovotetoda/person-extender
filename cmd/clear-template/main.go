@@ -1,16 +1,17 @@
 package main
 
 import (
-	"clear-template/internal/config"
-	mwLogger "clear-template/internal/http-server/middleware/logger"
-	"clear-template/internal/lib/logger/sl"
-	"clear-template/internal/lib/logger/slogpretty"
-	"clear-template/internal/storage/postgres"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"
 	"os"
+	"person-extender/internal/config"
+	mwLogger "person-extender/internal/http-server/middleware/logger"
+	"person-extender/internal/http-server/person/save"
+	"person-extender/internal/lib/logger/sl"
+	"person-extender/internal/lib/logger/slogpretty"
+	"person-extender/internal/storage/postgres"
 )
 
 const (
@@ -42,7 +43,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	_ = storage
+	router.Post("/persons", save.New(log, storage))
 
 	log.Info("server started", slog.String("address", cfg.Address))
 
