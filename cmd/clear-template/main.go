@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"os"
 	"person-extender/internal/config"
+	del "person-extender/internal/http-server/handlers/person/delete"
+	"person-extender/internal/http-server/handlers/person/save"
 	mwLogger "person-extender/internal/http-server/middleware/logger"
-	"person-extender/internal/http-server/person/save"
 	"person-extender/internal/lib/logger/sl"
 	"person-extender/internal/lib/logger/slogpretty"
 	"person-extender/internal/storage/postgres"
@@ -44,6 +45,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/persons", save.New(log, storage))
+	router.Delete("/persons/{id}", del.New(log, storage))
 
 	log.Info("server started", slog.String("address", cfg.Address))
 

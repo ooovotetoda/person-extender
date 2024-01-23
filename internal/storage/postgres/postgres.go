@@ -58,3 +58,14 @@ func (s *Storage) SavePerson(person *entity.Person) (int64, error) {
 	}
 	return id, nil
 }
+
+func (s *Storage) DeletePerson(ID int64) error {
+	const op = "storage.postgresql.RegisterUser"
+
+	_, err := s.db.Exec(`DELETE FROM persons WHERE id = $1`, ID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
