@@ -3,8 +3,6 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/joho/godotenv"
-	defaultLog "log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -26,11 +24,6 @@ const (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		defaultLog.Fatalf("Error loading .env file: %v", err)
-	}
-
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
