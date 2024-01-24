@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 type PersonExtends struct {
@@ -31,7 +32,7 @@ type Country struct {
 }
 
 func GetPersonExtends(name string) (*PersonExtends, error) {
-	ageURL := fmt.Sprintf("https://api.agify.io/?name=%s", name)
+	ageURL := fmt.Sprintf("%s?name=%s", os.Getenv("API_AGIFY_URL"), name)
 
 	res, err := http.Get(ageURL)
 	if err != nil {
@@ -49,7 +50,7 @@ func GetPersonExtends(name string) (*PersonExtends, error) {
 		return nil, err
 	}
 
-	genderURL := fmt.Sprintf("https://api.genderize.io//?name=%s", name)
+	genderURL := fmt.Sprintf("%s?name=%s", os.Getenv("API_GENDERIZE_URL"), name)
 
 	res, err = http.Get(genderURL)
 	if err != nil {
@@ -67,7 +68,7 @@ func GetPersonExtends(name string) (*PersonExtends, error) {
 		return nil, err
 	}
 
-	countryURL := fmt.Sprintf("https://api.nationalize.io//?name=%s", name)
+	countryURL := fmt.Sprintf("%s?name=%s", os.Getenv("API_NATIONALIZE_URL"), name)
 
 	res, err = http.Get(countryURL)
 	if err != nil {

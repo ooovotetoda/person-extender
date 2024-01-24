@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
+	defaultLog "log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -24,6 +26,11 @@ const (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		defaultLog.Fatalf("Error loading .env file: %v", err)
+	}
+
 	cfg := config.MustLoad()
 
 	log := setupLogger(cfg.Env)
@@ -31,7 +38,7 @@ func main() {
 	log.Info("App started", slog.String("env", cfg.Env))
 	log.Debug("Debugging started")
 
-	storage, err := postgres.New()
+	storage, err := postgres.New(cfg.Postgres.Host, cfg.Postgres.Port, cfg.Postgres.User, cfg.Postgres.Password, cfg.Postgres.DBName)
 	if err != nil {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)

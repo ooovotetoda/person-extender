@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"os"
+	"github.com/pressly/goose/v3"
 	"person-extender/internal/entity"
 	"strings"
 
@@ -14,20 +14,10 @@ type Storage struct {
 	db *sql.DB
 }
 
-const (
-	host = "localhost"
-	port = 5432
-)
-
-func New() (*Storage, error) {
+func New(host, port, user, password, dbname string) (*Storage, error) {
 	const op = "storage.postgres.New"
 
-	user, password, dbname :=
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DB")
-
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 
@@ -41,7 +31,14 @@ func New() (*Storage, error) {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &Storage{db: db}, nil
+	storage := &Storage{db: db}
+
+	err = goose.Up(storage.db, "internal/storage/migrations")
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return storage, nil
 }
 
 func (s *Storage) SavePerson(person *entity.Person) (int64, error) {
