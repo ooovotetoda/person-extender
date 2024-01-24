@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"person-extender/internal/entity"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -83,4 +84,78 @@ func (s *Storage) UpdatePerson(person *entity.Person) error {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
+}
+
+func (s *Storage) GetPersons(filters *entity.Filters, limit, offset int64) ([]*entity.Person, error) {
+	const op = "storage.postgres.GetPersons"
+
+	query := "SELECT * FROM persons"
+
+	conditions := []string{}
+	params := []interface{}{}
+	paramId := 1
+
+	if filters.Name != nil {
+		conditions = append(conditions, fmt.Sprintf("name = $%d", paramId))
+		params = append(params, *filters.Name)
+		paramId++
+	}
+
+	if filters.Surname != nil {
+		conditions = append(conditions, fmt.Sprintf("surname = $%d", paramId))
+		params = append(params, *filters.Surname)
+		paramId++
+	}
+
+	if filters.Patronymic != nil {
+		conditions = append(conditions, fmt.Sprintf("patronymic = $%d", paramId))
+		params = append(params, *filters.Patronymic)
+		paramId++
+	}
+
+	if filters.Age != nil {
+		conditions = append(conditions, fmt.Sprintf("age = $%d", paramId))
+		params = append(params, *filters.Age)
+		paramId++
+	}
+
+	if filters.Gender != nil {
+		conditions = append(conditions, fmt.Sprintf("gender = $%d", paramId))
+		params = append(params, *filters.Gender)
+		paramId++
+	}
+
+	if filters.Country != nil {
+		conditions = append(conditions, fmt.Sprintf("country = $%d", paramId))
+		params = append(params, *filters.Country)
+		paramId++
+	}
+
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	query += fmt.Sprintf(" LIMIT %d OFFSET %d", limit, offset)
+
+	rows, err := s.db.Query(query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	var persons []*entity.Person
+
+	for rows.Next() {
+		p := new(entity.Person)
+		err := rows.Scan(&p.ID, &p.Name, &p.Surname, &p.Patronymic, &p.Age, &p.Gender, &p.Country)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		persons = append(persons, p)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return persons, nil
 }
